@@ -1,122 +1,96 @@
-# Vector Search Workshop with Couchbase and Node.js - Workshop Step 2
+# Workshop 3 - RAG with Couchbase and Node.js
+
 ![Couchbase Capella](https://img.shields.io/badge/Couchbase_Capella-Enabled-red)
 [![License: MIT](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/65dd9eb5aaca434fac4f1c34_License-MIT-blue.svg)](/LICENSE)
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)]()
 
-Welcome to the 2nd part of the workshop. This workshop is designed to help you get started with vector search using Couchbase and Node.js. We will be using the [Couchbase Node.js SDK](https://docs.couchbase.com/nodejs-sdk/current/hello-world/start-using-sdk.html) and [Couchbase Capella](https://www.couchbase.com/products/cloud) managed database service.
-
-The workshop will be run from inside a GitHub Codespace, which is a cloud-based development environment that is pre-configured with all the necessary tools and services. You don't need to install anything on your local machine.
-
-> [!IMPORTANT]
-> Key information needed for running this workshop in GitHub Codespaces can be found [here](#running-in-github-codespaces).
+In this third part of the workshop, we will build upon the data and vector embeddings generated in Part 2 and integrate them into a Retrieval Augmented Generation (RAG) application. We’ll use a React frontend and a Node.js backend that leverages OpenAI for embeddings and Couchbase Capella for vector similarity searches.
 
 ## Prerequisites
 
-- A GitHub account
-- A Couchbase Capella account
+- Completion of Part 2 of this workshop where you have:
+- A Couchbase Capella cluster with a bucket containing documents and their vector embeddings.
+- A functioning vector search index in Capella.
+- An OpenAI API key.
+- A working Node.js environment.
 
 ## Workshop Outline
 
-1. [Create a Capella Account](#create-a-capella-account)
-2. [Create a Couchbase Cluster](#create-a-couchbase-cluster)
-3. [Create a Bucket](#create-a-bucket)
-4. [Transform Data](#transform-data)
-5. [Index Data](#index-data)
-6. [Search Data](#search-data)
-7. [Running in GitHub Codespaces](#running-in-github-codespaces)
+1. [Set Up the Frontend (React)](#set-up-the-frontend-react)
+2. [Set Up the Backend (Node.js)](#set-up-the-backend-nodejs)
+3. [Integrate Capella Vector Search](#integrate-capella-vector-search)
+4. [Integrate OpenAI for RAG](#integrate-openai-for-rag)
+5. [Run and Test the Application](#run-and-test-the-application)
 
-## Create a Capella Account
+## Set Up the Frontend (React)
 
-Couchbase Capella is a fully managed database service that provides a seamless experience for developers to build modern applications. You can sign up for a free account at [https://cloud.couchbase.com/signup](https://cloud.couchbase.com/signup).
+In this step, you’ll have a pre-configured React frontend that provides a UI for users to query your RAG application. The frontend will send user queries to your backend’s `/api/query` endpoint.
 
-## Create a Couchbase Cluster
+### Steps
 
-Once you have created an account, you can create a new Couchbase cluster by following the steps below:
+1. Navigate to the `frontend` directory.
+2. Install dependencies:  
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+    ```bash
+    npm run dev
+    ```
+4. Open your browser and navigate to `http://localhost:3000`. You should see the RAG application UI.
 
-1. Click on the "Create Cluster" button on the Capella dashboard.
+## Set Up the Backend (Node.js)
 
-2. Choose a cloud provider, name and region for your cluster and click on the "Create Cluster" button.
+Your backend will:
 
-## Create an API Key
+* Accept user queries from the frontend.
+* Transform the queries into vector embeddings using OpenAI.
+* Search for similar vectors in your Capella cluster.
+* Augment the user query with the retrieved documents and request a response from OpenAI.
+* Return the response to the frontend.
 
-After creating a cluster, you can create an API Key. This will be used by Couchbase Shell for various cluster management operations.
+### Steps
 
-1. Go to Organization Setting.
+1. Navigate to the `backend` directory.
+2. Install dependencies:  
+   ```bash
+   npm install
+   ```
+3. Start the backend:
+    ```bash
+    node server.js
+    ```
 
-2. Click on "API Keys", "Generate Key"
+## Integrate Capella Vector Search
 
-3. Choose a Key Name, enter a description to remember why you created the key, check all Organization Roles and click on "Generate Key".
+Your backend will use the Couchbase Node.js SDK to connect to Capella and execute vector similarity queries against the index created in Part 2.
 
-4. Make sure you copy the API Key and API Secret
+Verify you have your Couchbase Capella connection config defined in `.env` file in the `backend` directory:
 
-## Configure Couchbase Shell
-
-Couchbase Shell is a direct way to interact with your Couchbase Clusters, allowing you to configure, 
-
-1. open `~/.cbsh/config` and edit this file with the following content:
-
-```
-version = 1
-llms = []
-
-[[capella-organization]]
-identifier = "yourOrgIdentifier"
-access-key = "yourAccessKey"
-secret-key = "yourSecretKey"
-default-project = "Trial - Project"
-
-```
-
-2. Run `cbsh` in the terminal to open [Couchbase Shell](https://couchbase.sh).
-
-3. Register your trial cluster by running `clusters | clusters get $in.0.name | cb-env register $in.name $in."connection string" --capella-organization "yourOrgIdentifier" --project "Trial - Project" --save --default-bucket bot --default-scope public --username cbsh --password yourPassword`
-
-4. Verify `~/.cbsh/config` has ben modified. It should contains the cluster definition. From there copy the cluster identifier and run `cb-env cluster clusterIdentifier`. This will tell cbsh that the default cluster for all future operations in this session is your cluster.
-
-5. Create the corresponding credentials `credentials create --read --write --username cbsh --password yourPassword`
-
-
-## Configure your Cluster
-
-After creating a cluster, you can create a new bucket by following the steps below:
-
-1. Click on the "+ Create" button from inside the cluster dashboard.
-
-2. Define the options for your bucket and click on the "Create" button.
-
-## Ingest Data
-
-### Setting up OpenAI API
-
-This workshop uses OpenAI's embedding API to generate vector embeddings from your JSON documents. You need to set up your OpenAI API key in the environment.
-
-Create a `.env` file in the root directory and add your OpenAI API key:
-
-```bash
-OPENAI_API_KEY=your_openai_api_key
+```env
+COUCHBASE_CONNECTION_STRING=your-connection-string
+COUCHBASE_USERNAME=your-username
+COUCHBASE_PASSWORD=your-password
+COUCHBASE_SEARCH_INDEX_NAME=your-index-name
+COUCHBASE_BUCKET_NAME=your-bucket-name
 ```
 
-OpenAI must also be configured for Couchbase Shell, add the following block to `~/.cbsh/config`
-```
-[[llm]]
-identifier = "OpenAI-small"
-provider = "OpenAI"
-embed_model = "text-embedding-3-small"
-chat_model = "gpt-3.5-turbo"
-api_key = "get-your-own"
+## Integrate OpenAI for RAG
+
+To transform user queries into embeddings and generate responses using retrieved context from Capella, you’ll integrate OpenAI’s API.
+
+Verify you have your OpenAI API key defined in `.env` file in the `backend` directory:
+
+```env
+OPENAI_API_KEY=your-api-key
 ```
 
-You can get your API key from the [OpenAI API dashboard](https://platform.openai.com/api-keys).
+## Run and Test the Application
 
-### Import Data
+Once everything is connected, you can run both the frontend and backend together:
 
-Run cbsh and source the `importers.nu` file.
-```
-source importers.nu
-import_markdown_in_folder ../content/files/en-us/glossary/ "glossary "a glossary of IT terms"
-let query = "Your question about something in the glossary"
-let vectorized_query = $query | vector enrich-text 
-let context = vector search documentation vector $question.content.vector.0 | get id | subdoc  get content | select content
-$context | ask $question.content.text.0
-```
-Here the content folder is a local clone of Mozilla Developer network.
+1. Ensure the backend (node server.js in backend) and frontend (npm run dev in frontend) servers are running.
+2. Visit the frontend URL in your browser.
+3. Enter a query and submit it.
+4. Frontend displays the response.
