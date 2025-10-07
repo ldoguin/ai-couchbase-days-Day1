@@ -1,4 +1,4 @@
-# Vector Search Workshop with Couchbase and Node.js - Workshop Step 2
+# Vector Search Workshop with Couchbase and Node.js - Step 2
 ![Couchbase Capella](https://img.shields.io/badge/Couchbase_Capella-Enabled-red)
 [![License: MIT](https://cdn.prod.website-files.com/5e0f1144930a8bc8aace526c/65dd9eb5aaca434fac4f1c34_License-MIT-blue.svg)](/LICENSE)
 
@@ -17,19 +17,22 @@ The workshop will be run from inside a GitHub Codespace, which is a cloud-based 
 
 ## Workshop Outline
 
-1. [Create a Capella Account](#create-a-capella-account)
-2. [Create a Couchbase Cluster](#create-a-couchbase-cluster)
-3. [Create a Bucket](#create-a-bucket)
+1. [With Capella](#with-capella)
+2. [With Couchbase Server](#With-couchbase-server)
+3. [Configure your Cluster](#configure-your-cluster)
 4. [Transform Data](#transform-data)
 5. [Index Data](#index-data)
 6. [Search Data](#search-data)
 7. [Running in GitHub Codespaces](#running-in-github-codespaces)
 
-## Create a Capella Account
+
+## With Capella
+
+### Create a Capella Account
 
 Couchbase Capella is a fully managed database service that provides a seamless experience for developers to build modern applications. You can sign up for a free account at [https://cloud.couchbase.com/signup](https://cloud.couchbase.com/signup).
 
-## Create a Couchbase Cluster
+### Create a Couchbase Cluster
 
 Once you have created an account, you can create a new Couchbase cluster by following the steps below:
 
@@ -37,7 +40,7 @@ Once you have created an account, you can create a new Couchbase cluster by foll
 
 2. Choose a cloud provider, name and region for your cluster and click on the "Create Cluster" button.
 
-## Create an API Key
+### Create an API Key
 
 After creating a cluster, you can create an API Key. This will be used by Couchbase Shell for various cluster management operations.
 
@@ -49,7 +52,7 @@ After creating a cluster, you can create an API Key. This will be used by Couchb
 
 4. Make sure you copy the API Key and API Secret
 
-## Configure Couchbase Shell
+### Configure Couchbase Shell
 
 Couchbase Shell is a direct way to interact with your Couchbase Clusters, allowing you to configure, 
 
@@ -73,7 +76,35 @@ default-project = "Trial - Project"
 
 4. Verify `~/.cbsh/config` has ben modified. It should contains the cluster definition. From there copy the cluster identifier and run `cb-env cluster clusterIdentifier`. This will tell cbsh that the default cluster for all future operations in this session is your cluster.
 
-5. Create the corresponding credentials `credentials create --read --write --username cbsh --password yourPassword`
+5. Create the corresponding credentials `credentials create --read  --write --username cbsh --password yourPassword`
+
+## With Couchbase Server
+
+Couchbase is the modern database for enterprise applications. Couchbase is a distributed, JSON document database, with all the desired capabilities of a relational DBMS. It is a robust database, built for microservices and serverless consumption-based computing on the cloud on one end, and edge computing for occasionally and locally connected edge Mobile/IoT devices on the other.
+
+### Install Couchbase Server
+
+You can install, setup and run Couchbase Server as a standalone application or as a Docker instance. Please follow the instructions [on this page](https://docs.couchbase.com/server/current/getting-started/do-a-quick-install.html).
+
+### Configure Couchbase Shell
+
+Couchbase Shell is a direct way to interact with your Couchbase Clusters, allowing you to configure, 
+
+1. open `~/.cbsh/config` and edit this file with the following content:
+
+```
+version = 1
+llms = []
+
+[[cluster]]
+identifier = "local"
+connstr = "couchbase://127.0.0.1"
+default-bucket = "default"
+username = "username"
+password = "password"
+tls-enabled = false
+
+```
 
 
 ## Configure your Cluster
@@ -116,7 +147,7 @@ source importers.nu
 import_markdown_in_folder ../content/files/en-us/glossary/ "glossary "a glossary of IT terms"
 let query = "Your question about something in the glossary"
 let vectorized_query = $query | vector enrich-text 
-let context = vector search documentation vector $question.content.vector.0 | get id | subdoc  get content | select content
-$context | ask $question.content.text.0
+let context = vector search documentation vector $vectorized_query.content.vector.0 | get id | subdoc  get content | select content
+$context | ask $vectorized_query.content.text.0
 ```
 Here the content folder is a local clone of Mozilla Developer network.
