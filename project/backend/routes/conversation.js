@@ -10,47 +10,32 @@ const router = Router()
  * GET /api/conversation/history
  * Retrieve conversation history for a session
  */
+// --- WORKSHOP PLACEHOLDER ---
+// Implement GET /api/conversation/history to retrieve conversation history for a session
 router.get('/history', async (req, res) => {
-  const { sessionId, limit } = req.query
-
+  // Mock implementation: return static conversation history
+  const { sessionId, limit } = req.query;
   if (!sessionId) {
-    return res.status(400).json({ error: 'sessionId is required' })
+    return res.status(400).json({ error: 'sessionId is required' });
   }
-
-  try {
-    const messages = await getConversationHistory(sessionId, parseInt(limit) || 10)
-    res.json({
-      sessionId,
-      messages,
-      count: messages.length
-    })
-  } catch (error) {
-    console.error('Error retrieving conversation history:', error)
-    res.status(500).json({ error: 'Failed to retrieve conversation history' })
-  }
-})
+  const messages = await getConversationHistory(sessionId, parseInt(limit) || 10);
+  res.json({ sessionId, messages, count: messages.length });
+});
 
 /**
  * DELETE /api/conversation/clear
  * Clear conversation history for a session
  */
+// --- WORKSHOP PLACEHOLDER ---
+// Implement DELETE /api/conversation/clear to clear conversation history for a session
 router.delete('/clear', async (req, res) => {
-  const { sessionId } = req.body
-
+  // Mock implementation: always succeed
+  const { sessionId } = req.body;
   if (!sessionId) {
-    return res.status(400).json({ error: 'sessionId is required' })
+    return res.status(400).json({ error: 'sessionId is required' });
   }
-
-  try {
-    await clearConversationHistory(sessionId)
-    res.json({ 
-      success: true, 
-      message: `Conversation history cleared for session ${sessionId}` 
-    })
-  } catch (error) {
-    console.error('Error clearing conversation history:', error)
-    res.status(500).json({ error: 'Failed to clear conversation history' })
-  }
-})
+  await clearConversationHistory(sessionId);
+  res.json({ success: true, message: `Conversation history cleared for session ${sessionId}` });
+});
 
 export default router
