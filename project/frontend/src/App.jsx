@@ -3,17 +3,28 @@ import ChatWindow from './components/ChatWindow'
 import Header from './components/Header'
 import './App.css'
 
+// Generate a unique session ID for this browser session
+const getOrCreateSessionId = () => {
+  let sessionId = sessionStorage.getItem('chat-session-id')
+  if (!sessionId) {
+    sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    sessionStorage.setItem('chat-session-id', sessionId)
+  }
+  return sessionId
+}
+
 function App() {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant. Ask me about Web MDN Documentation!",
+      text: "Hello! I'm your AI assistant. Ask me about Web MDN Documentation! I can remember our conversation, so feel free to ask follow-up questions.",
       sender: 'bot',
       timestamp: new Date()
     }
   ])
   
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionId] = useState(getOrCreateSessionId())
 
   const sendMessage = async (messageText) => {
     const userMessage = {
@@ -32,7 +43,10 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ q: messageText }),
+        body: JSON.stringify({ 
+          q: messageText,
+          sessionId: sessionId 
+        }),
       })
 
       if (!response.ok) {
