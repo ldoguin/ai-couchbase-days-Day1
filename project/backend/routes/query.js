@@ -4,40 +4,62 @@ import { getRelevantDocuments } from '../services/couchbaseService.js'
 
 const router = Router()
 
-
-// --- RAG logic placeholder for workshop ---
 router.post('/', async (req, res) => {
-  const { q } = req.body;
+  const { q } = req.body
+
   if (!q || q.trim() === '') {
-    return res.status(400).json({ error: 'Query is required.' });
+    return res.status(400).json({ error: 'Query is required.' })
   }
-  const { name } = req.query;
+  const { name } = req.query
 
   try {
-    // Placeholder: Generate a fake embedding
-    const embedding = [0.1, 0.2, 0.3];
+    const embedding = await getEmbedding(q)
 
-    // Placeholder: Get fake documents
-    const documents = await getRelevantDocuments(embedding, name);
+    const documents = await getRelevantDocuments(embedding, name)
 
-    // Placeholder: Construct a generic prompt
-    const prompt = `This is a placeholder response. Replace this logic with your own RAG implementation!`;
+    // Step 3: Construct the prompt with document info
+    const documentList = documents.map((doc, index) => 
+      `Document ${index + 1}:
+       ID: ${doc.id}
+       Filepath: ${doc.filepath}
+       Score: ${doc.score}
+       Content: ${JSON.stringify(doc.content)}`
+    ).join('\n\n');
+
+    const prompt = `You are a Web MDN Documentation expert.
+Given the user query and the following relevant documents, provide a helpful and accurate answer.
+
+${documentList}
+
+User Query: ${q}
+
+Please provide a helpful response based on these documentation pages. Include references to the document IDs and filepaths when relevant.`
 
     // Set headers for streaming response
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.setHeader('Transfer-Encoding', 'chunked')
 
-    // Placeholder: Simulate streaming response
-    res.write(prompt);
-    res.end();
+    // Step 4: Get a streaming completion
+    const stream = await getCompletionStream(prompt)
+
+    // Iterate over the streamed chunks and send them to the client as they arrive
+    for await (const chunk of stream) {
+      const token = chunk.choices[0]?.delta?.content
+      if (token) {
+        res.write(token)
+      }
+    }
+
+    // When the stream ends, end the response
+    res.end()
   } catch (error) {
-    console.error(error);
+    console.error(error)
     if (!res.headersSent) {
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      res.status(500).json({ error: 'An error occurred while processing your request.' })
     } else {
-      res.end();
+      res.end()
     }
   }
-});
+})
 
 export default router
