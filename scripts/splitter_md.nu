@@ -13,7 +13,7 @@
 # ---------- helpers ----------
 def byte-len [s: string] {
   # UTF-8 byte length via hex: 2 hex chars per byte
-  (($s | into binary | encode hex | str length) / 2)
+  (($s | encode base64 | str length) / 2)
 }
 
 def strlen [s: string, use_bytes: bool] {

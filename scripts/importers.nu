@@ -59,7 +59,7 @@ def import_documentation [
 def vectorize_chunk [
 ] {
     let strings = $in | reduce --fold [] { | it, acc| ( $acc | append ( $it.content  ) )  }
-    let vectors = embed $strings --provider openai
+    let vectors = embed $strings --provider gemini
     let vectorized_chunks = $in | enumerate | each { |row| $row.item | insert id ( $row.item.content | hash sha256 ) | insert vector ( $vectors | get ($row.index)  ) }
     $vectorized_chunks
 }

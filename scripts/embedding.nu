@@ -42,7 +42,7 @@ export def embed [
       }
 
       let body = { requests : $content}
-      http post -H [
+      http post -k -H [
         "x-goog-api-key" $env.GEMINI_API_KEY,
         "Content-Type" "application/json"
       ] "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents" ($body | to json)
