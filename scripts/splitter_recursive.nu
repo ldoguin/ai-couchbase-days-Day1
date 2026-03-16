@@ -15,16 +15,16 @@
 #   recursive-chunker -t "# Title\n\nPara one.\n\nPara two." --chunk-size 12 --overlap 3
 
 # ---------- length helpers (portable byte counting) ----------
-def byte-len [s: string] -> int {
+def byte-len [s: string] {
   # UTF-8 byte length via hex: 2 hex chars per byte
   (($s | into binary | encode hex | str length) / 2)
 }
 
-def strlen [s: string, use_bytes: bool] -> int {
+def strlen [s: string, use_bytes: bool] {
   if $use_bytes { byte-len $s } else { $s | str length }
 }
 
-def bytes_to_char_index [s: string, target_bytes: int] -> int {
+def bytes_to_char_index [s: string, target_bytes: int] {
   mut total = 0
   mut idx = 0
   for ch in ($s | split chars) {
@@ -36,7 +36,7 @@ def bytes_to_char_index [s: string, target_bytes: int] -> int {
   $idx
 }
 
-def prefix_by_len [s: string, n: int, use_bytes: bool] -> record<char_idx: int, text: string> {
+def prefix_by_len [s: string, n: int, use_bytes: bool] {
   if not $use_bytes {
     let ci = (if $n < 0 { 0 } else { $n })
     { char_idx: $ci, text: ($s | str substring ..$ci) }
@@ -47,7 +47,7 @@ def prefix_by_len [s: string, n: int, use_bytes: bool] -> record<char_idx: int, 
   }
 }
 
-def tail_by_len [s: string, n: int, use_bytes: bool] -> string {
+def tail_by_len [s: string, n: int, use_bytes: bool]  {
   if not $use_bytes {
     let L = ($s | str length)
     let start = (if $n >= $L { 0 } else { $L - $n })
@@ -61,7 +61,7 @@ def tail_by_len [s: string, n: int, use_bytes: bool] -> string {
 }
 
 # ---------- splitting primitives ----------
-def split_once [text: string, sep: string, keep_separator: bool] -> record<had_sep: bool, parts: list<string>> {
+def split_once [text: string, sep: string, keep_separator: bool] {
   if $sep == "" {
     let parts = ($text | split chars)
     { had_sep: (($parts | length) > 1), parts: $parts }
@@ -80,7 +80,7 @@ def split_once [text: string, sep: string, keep_separator: bool] -> record<had_s
   }
 }
 
-def hard_split [s: string, limit: int, use_bytes: bool] -> list<string> {
+def hard_split [s: string, limit: int, use_bytes: bool] {
   mut out = []
   mut rest = $s
   while ($rest | str length) > 0 {
@@ -108,7 +108,7 @@ def split_recurse [
   chunk_size: int,
   use_bytes: bool,
   keep_separator: bool
-] -> list<string> {
+] {
   if $depth >= ($separators | length) {
     if (strlen $text $use_bytes) <= $chunk_size { return [ $text ] } else { return (hard_split $text $chunk_size $use_bytes) }
   }
@@ -144,7 +144,7 @@ def merge_chunks [
   use_bytes: bool,
   keep_separator: bool,
   chosen_sep: string
-] -> list<string> {
+]  {
   mut current = ""
   mut clen = 0
   mut out = []
@@ -194,7 +194,7 @@ def merge_chunks [
 }
 
 # ---------- language presets ----------
-def normalize-language [lang: string] -> string {
+def normalize-language [lang: string] {
   let l = (($lang | default "" | str downcase | str trim))
   match $l {
   "md" | "markdown" | "mdx" => "markdown",
@@ -223,7 +223,7 @@ def normalize-language [lang: string] -> string {
 
 # Returns a prioritized list of separators for a language.
 # NOTE: This is heuristic and intentionally simple (string separators only).
-export def get-separators-for-language [language: string] -> list<string> {
+export def get-separators-for-language [language: string]  {
   let L = (normalize-language $language)
 
   match $L {

@@ -11,16 +11,16 @@
 # Output: list of records { content, meta: { headers, start_line, end_line } }
 
 # ---------- helpers ----------
-def byte-len [s: string] -> int {
+def byte-len [s: string] {
   # UTF-8 byte length via hex: 2 hex chars per byte
   (($s | into binary | encode hex | str length) / 2)
 }
 
-def strlen [s: string, use_bytes: bool] -> int {
+def strlen [s: string, use_bytes: bool] {
   if $use_bytes { byte-len $s } else { $s | str length }
 }
 
-def bytes_to_char_index [s: string, target_bytes: int] -> int {
+def bytes_to_char_index [s: string, target_bytes: int] {
   mut total = 0
   mut idx = 0
   for ch in ($s | split chars) {
@@ -32,7 +32,7 @@ def bytes_to_char_index [s: string, target_bytes: int] -> int {
   $idx
 }
 
-def tail_by_len [s: string, n: int, use_bytes: bool] -> string {
+def tail_by_len [s: string, n: int, use_bytes: bool]  {
   if not $use_bytes {
     let L = ($s | str length)
     let start = (if $n >= $L { 0 } else { $L - $n })
@@ -44,7 +44,7 @@ def tail_by_len [s: string, n: int, use_bytes: bool] -> string {
     $s | str substring $start_ci..
   }
 }
-def prefix_by_len [s: string, n: int, use_bytes: bool] -> string {
+def prefix_by_len [s: string, n: int, use_bytes: bool]  {
   if not $use_bytes { $s | str substring ..$n }
   else {
     let char_idx = (bytes_to_char_index $s $n)
